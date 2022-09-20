@@ -1,0 +1,83 @@
+<!doctype html>
+
+<head>
+    <title>Sign message</title>
+
+    <script src="https://cdn.jsdelivr.net/gh/chrisdickinson/bops@master/dist/bops.js" type="module"></script>
+    <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+    <!-- <script type="module" src="{{ url_for('static', filename='js/script.js') }}"></script> -->
+</head>
+
+<body>
+    <h1>Sign Message</h1>
+
+    <script type="module">
+        var globalAccount;
+        var globalSignature;
+        // var globalSignatureResult
+
+        window.onload = async function () {
+            const web3 = new Web3(window.ethereum);
+
+            if (typeof web3 !== 'undefined') {
+                console.log('MetaMask is installed!');
+            } else {
+                console.log('MetaMask is not installed!');
+            }
+
+            await getAccount();
+            await signMessage();
+            sendRequest();
+
+            async function getAccount() {
+                const accounts = await ethereum.request({
+                    method: 'eth_requestAccounts'
+                });
+                globalAccount = accounts[0];
+                // console.log('account : ' + globalAccount);
+            }
+
+            async function signMessage() {
+                try {
+                    const from = globalAccount;
+                    // console.log('from : ' + from);
+                    
+                    const msg = '{{message}}';
+                    // console.log('msg : ' + msg);
+
+                    const sign = await ethereum.request({
+                        method: 'personal_sign',
+                        params: [msg, from, 'Random text'],
+                    });
+                    // console.log('sign : ' + sign);
+
+                    globalSignature = sign;
+                } catch (err) {
+                    console.error(err);
+                }
+            }
+            
+            function sendRequest() {
+                let xhr = new XMLHttpRequest();
+                const url = '{{ sign_url|safe }}';
+                console.log('url: ' + url);
+                xhr.open('POST', url, true);
+                xhr.setRequestHeader('Content-Type', 'application/json');
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState === 4 && xhr.status === 200) {
+                        console.log(`response: ${xhr.responseText}`);
+                        // globalSignatureResult = xhr.responseText['result'];
+                    }
+                };
+                const data = JSON.stringify({'address': globalAccount, 'sign': globalSignature});
+                try {
+                    xhr.send(data);
+                } catch (err) {
+                    console.error(err);
+                }
+            }
+        }
+    </script>
+</body>
+
+</html>

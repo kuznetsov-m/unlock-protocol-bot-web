@@ -5,6 +5,7 @@ from hexbytes import HexBytes
 from eth_account.messages import encode_defunct
 import os
 import telebot
+from app import app
 
 def signIsValid(sign: str, text: str, address: str):
     if None in [sign, text, address]:
@@ -41,8 +42,6 @@ def send_result_to_telegram_bot(user_id: int, sign_is_valid: str, balance: int):
         bot.send_message(user_id, 'Check passed. Your link to go to the channel.\nPlease note that the link is one-time and only available for your telegram account.')
 
 
-app = Flask(__name__)
-
 @app.route('/')
 def hello_world():
     telegram_bot_name = os.environ.get('TELEGRAM_BOT_NAME')
@@ -69,7 +68,11 @@ def sign():
 
         # balanceOf
         token_abi = ''
-        with open('static/abi.json', 'r') as file:
+        print(f'current dir: {os.getcwd()}')
+        APP_ROOT = os.path.dirname(os.path.abspath(__file__))
+        STATIC_DIR = os.path.join(APP_ROOT, 'static')
+        print(f'current dir: {APP_ROOT}')
+        with open(f'{STATIC_DIR}/abi.json', 'r') as file:
             token_abi = file.read()
         balance = balanceOf(token_address, token_abi, account_address)
         response['balance'] = balance

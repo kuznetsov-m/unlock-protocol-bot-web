@@ -10,6 +10,7 @@ web3 = "^5.31.0"
 Flask = "^2.2.2"
 python-dotenv = "^0.21.0"
 pyTelegramBotAPI = "^4.7.0"
+gunicorn = "^20.1.0"
 
 [tool.poetry.dev-dependencies]
 

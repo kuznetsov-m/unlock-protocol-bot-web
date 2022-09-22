@@ -5,7 +5,8 @@ from hexbytes import HexBytes
 from eth_account.messages import encode_defunct
 import os
 import telebot
-from app import app
+from app import app, db
+from app.models import TelegramUser
 
 def signIsValid(sign: str, text: str, address: str):
     if None in [sign, text, address]:
@@ -64,14 +65,16 @@ def sign():
         account_address = request.json.get('address')
 
         sign_is_valid = signIsValid(sign, message, account_address)
+        if sign_is_valid:
+            user = TelegramUser.query.filter_by(id=user_id).first()
+            user.account_address = account_address
+            db.session.commit()
         response['sign_is_valid'] = sign_is_valid
 
         # balanceOf
         token_abi = ''
-        print(f'current dir: {os.getcwd()}')
         APP_ROOT = os.path.dirname(os.path.abspath(__file__))
         STATIC_DIR = os.path.join(APP_ROOT, 'static')
-        print(f'current dir: {APP_ROOT}')
         with open(f'{STATIC_DIR}/abi.json', 'r') as file:
             token_abi = file.read()
         balance = balanceOf(token_address, token_abi, account_address)

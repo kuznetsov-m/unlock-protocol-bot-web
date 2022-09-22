@@ -42,6 +42,13 @@ def send_result_to_telegram_bot(user_id: int, sign_is_valid: str, balance: int):
     else:
         bot.send_message(user_id, 'Check passed. Your link to go to the channel.\nPlease note that the link is one-time and only available for your telegram account.')
 
+def update_user_data(user_id: int, account_address: str, sign_is_valid: str, balance: int):
+    user = TelegramUser.query.filter_by(id=user_id).first()
+    if sign_is_valid:    
+        user.account_address = account_address
+    user.balance = balance
+    db.session.commit()
+
 
 @app.route('/')
 def hello_world():
@@ -65,10 +72,6 @@ def sign():
         account_address = request.json.get('address')
 
         sign_is_valid = signIsValid(sign, message, account_address)
-        if sign_is_valid:
-            user = TelegramUser.query.filter_by(id=user_id).first()
-            user.account_address = account_address
-            db.session.commit()
         response['sign_is_valid'] = sign_is_valid
 
         # balanceOf
@@ -79,6 +82,8 @@ def sign():
             token_abi = file.read()
         balance = balanceOf(token_address, token_abi, account_address)
         response['balance'] = balance
+
+        update_user_data(user_id, account_address, sign_is_valid, balance)
 
         send_result_to_telegram_bot(user_id, sign_is_valid, balance)
 

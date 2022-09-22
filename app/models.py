@@ -13,6 +13,7 @@ class TelegramUser(db.Model):
     first_name = Column(db.String)
     last_name = Column(db.String)
     account_address = Column(db.String)
+    balance = Column(db.Integer, default=0)
 
     def __repr__(self):
         return (

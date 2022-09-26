@@ -8,6 +8,11 @@ import telebot
 from app import app, db
 from app.models import TelegramUser
 
+from siwe import SiweMessage
+import siwe
+
+user_to_message = {}
+
 def signIsValid(sign: str, text: str, address: str):
     if None in [sign, text, address]:
         return False
@@ -19,6 +24,18 @@ def signIsValid(sign: str, text: str, address: str):
         signature=HexBytes(sign)
     )
     return sign_address.lower() == address.lower()
+
+def signIsValid2(sign: str, message: SiweMessage, user_id: int, address: str):
+    if None in [sign, user_id, address]:
+        return False
+    
+    provider = os.environ.get('WEB3_PROVIDER')
+    try:
+        message.verify(signature=sign, nonce=message.nonce, domain=message.domain, provider=provider)
+    except Exception as e:
+        print(f'ERROR message.verify(): {e}')
+        return False
+    return True
 
 def balanceOf(token_address: str, token_abi: str, address: str):
     w3 = Web3(Web3.HTTPProvider(os.environ.get('WEB3_PROVIDER')))
@@ -49,11 +66,70 @@ def update_user_data(user_id: int, account_address: str, sign_is_valid: str, bal
     user.balance = balance
     db.session.commit()
 
+def build_message(account_address: str) -> str:
+    domain = os.environ.get('BASE_URL')
+    chain_id = 5
+    eip_4361_string = {
+        'domain': domain,
+        'address': Web3.toChecksumAddress(account_address),
+        'chain_id': chain_id
+    }
+
+    message: SiweMessage = SiweMessage(message=eip_4361_string)
+    return message 
 
 @app.route('/')
 def hello_world():
     telegram_bot_name = os.environ.get('TELEGRAM_BOT_NAME')
     return render_template('index.html', telegram_bot_name=telegram_bot_name)
+
+@app.route('/siwe_message', methods=['GET'])
+def message():
+    user_id = int(request.args.get('user_id'))
+    token_address = request.args.get('token_address')
+    account_address = request.args.get('account_address')
+
+    siwe_message = build_message(account_address)
+    user_to_message[user_id] = siwe_message
+    return siwe_message.prepare_message()
+
+@app.route('/siwe_sign', methods=['GET', 'POST'])
+def siwe_sign():
+    user_id = int(request.args.get('user_id'))
+    token_address = request.args.get('token_address')
+    if request.method == 'POST':
+        assert token_address != None, 'token_address must be not empty'
+        assert user_id != None, f'user_id must be not empty'
+
+        response = request.json
+        response['user_id'] = user_id
+
+        sign = request.json.get('sign')
+        account_address = request.json.get('address')
+
+        sign_is_valid = signIsValid2(sign, user_to_message[user_id], user_id, account_address)
+        response['sign_is_valid'] = sign_is_valid
+
+        # balanceOf
+        token_abi = ''
+        APP_ROOT = os.path.dirname(os.path.abspath(__file__))
+        STATIC_DIR = os.path.join(APP_ROOT, 'static')
+        with open(f'{STATIC_DIR}/abi.json', 'r') as file:
+            token_abi = file.read()
+        balance = balanceOf(token_address, token_abi, account_address)
+        response['balance'] = balance
+
+        update_user_data(user_id, account_address, sign_is_valid, balance)
+
+        send_result_to_telegram_bot(user_id, sign_is_valid, balance)
+
+        return jsonify(response)
+    else:
+        return render_template(
+                'siwe_sign.html',
+                sign_url=f'{os.environ.get("BASE_URL")}/siwe_sign?user_id={user_id}&token_address={token_address}',
+                message_url=f'{os.environ.get("BASE_URL")}/siwe_message?user_id={user_id}&token_address={token_address}'
+        )
 
 @app.route('/sign', methods=['GET', 'POST'])
 def sign():

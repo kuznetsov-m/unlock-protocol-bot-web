@@ -1,4 +1,12 @@
 [[package]]
+name = "abnf"
+version = "1.1.1"
+description = "Parsers for ABNF grammars."
+category = "main"
+optional = false
+python-versions = ">=3"
+
+[[package]]
 name = "aiohttp"
 version = "3.8.1"
 description = "Async http client/server framework (asyncio)"
@@ -519,6 +527,17 @@ redis = ["redis (>=3.4.1)"]
 uvicorn = ["uvicorn"]
 
 [[package]]
+name = "python-dateutil"
+version = "2.8.2"
+description = "Extensions to the standard Python datetime module"
+category = "main"
+optional = false
+python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,>=2.7"
+
+[package.dependencies]
+six = ">=1.5"
+
+[[package]]
 name = "python-dotenv"
 version = "0.21.0"
 description = "Read key-value pairs from a .env file and set them as environment variables"
@@ -556,6 +575,14 @@ socks = ["PySocks (>=1.5.6,!=1.5.7)"]
 use_chardet_on_py3 = ["chardet (>=3.0.2,<6)"]
 
 [[package]]
+name = "rfc3987"
+version = "1.3.8"
+description = "Parsing and validation of URIs (RFC 3986) and IRIs (RFC 3987)"
+category = "main"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "rlp"
 version = "2.0.1"
 description = "A package for Recursive Length Prefix encoding and decoding"
@@ -572,6 +599,21 @@ doc = ["Sphinx (>=1.6.5,<2)", "sphinx-rtd-theme (>=0.1.9)"]
 lint = ["flake8 (==3.4.1)"]
 rust-backend = ["rusty-rlp (>=0.1.15,<0.2)"]
 test = ["hypothesis (==5.19.0)", "pytest (==5.4.3)", "tox (>=2.9.1,<3)"]
+
+[[package]]
+name = "siwe"
+version = "2.0.0"
+description = "A Python implementation of Sign-In with Ethereum (EIP-4361)."
+category = "main"
+optional = false
+python-versions = ">=3.7, !=2.7.*, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, !=3.5.*, !=3.6.*"
+
+[package.dependencies]
+abnf = "1.1.1"
+eth-account = ">=0.5.6,<0.6.0"
+python-dateutil = "2.8.2"
+rfc3987 = ">=1.3.4,<2.0.0"
+web3 = ">=5.26.0,<6.0.0"
 
 [[package]]
 name = "six"
@@ -710,9 +752,13 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "d9b7065b2958129ce249efde44ee1d5de82150ab5b8f5f699486846190b919d5"
+content-hash = "9a9fb7b05e0331908d0b37624e8bcc5770c8f2eddc02005e4a4cca0b3e5e8231"
 
 [metadata.files]
+abnf = [
+    {file = "abnf-1.1.1-py2.py3-none-any.whl", hash = "sha256:c18f74ad61aa381e9afd91a349d3f43b98c962fce5dcad018d883663fd4cbc38"},
+    {file = "abnf-1.1.1.tar.gz", hash = "sha256:f8e699ee0a3be375fdccdbbbd17b69e3941c7467a203de9c3e38bb9b38bbc191"},
+]
 aiohttp = [
     {file = "aiohttp-3.8.1-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:1ed0b6477896559f17b9eaeb6d38e07f7f9ffe40b9f0f9627ae8b9926ae260a8"},
     {file = "aiohttp-3.8.1-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:7dadf3c307b31e0e61689cbf9e06be7a867c563d5a63ce9dca578f956609abf8"},
@@ -1421,6 +1467,10 @@ pyrsistent = [
 pytelegrambotapi = [
     {file = "pyTelegramBotAPI-4.7.0.tar.gz", hash = "sha256:b15bb9d7c07e3c34a95ba32162d35690fa70b93e3bd557c6b830eda4becca3f5"},
 ]
+python-dateutil = [
+    {file = "python-dateutil-2.8.2.tar.gz", hash = "sha256:0123cacc1627ae19ddf3c27a5de5bd67ee4586fbdd6440d9748f8abb483d3e86"},
+    {file = "python_dateutil-2.8.2-py2.py3-none-any.whl", hash = "sha256:961d03dc3453ebbc59dbdea9e4e11c5651520a876d0f4db161e8674aae935da9"},
+]
 python-dotenv = [
     {file = "python-dotenv-0.21.0.tar.gz", hash = "sha256:b77d08274639e3d34145dfa6c7008e66df0f04b7be7a75fd0d5292c191d79045"},
     {file = "python_dotenv-0.21.0-py3-none-any.whl", hash = "sha256:1684eb44636dd462b66c3ee016599815514527ad99965de77f43e0944634a7e5"},
@@ -1445,9 +1495,17 @@ requests = [
     {file = "requests-2.28.1-py3-none-any.whl", hash = "sha256:8fefa2a1a1365bf5520aac41836fbee479da67864514bdb821f31ce07ce65349"},
     {file = "requests-2.28.1.tar.gz", hash = "sha256:7c5599b102feddaa661c826c56ab4fee28bfd17f5abca1ebbe3e7f19d7c97983"},
 ]
+rfc3987 = [
+    {file = "rfc3987-1.3.8-py2.py3-none-any.whl", hash = "sha256:10702b1e51e5658843460b189b185c0366d2cf4cff716f13111b0ea9fd2dce53"},
+    {file = "rfc3987-1.3.8.tar.gz", hash = "sha256:d3c4d257a560d544e9826b38bc81db676890c79ab9d7ac92b39c7a253d5ca733"},
+]
 rlp = [
     {file = "rlp-2.0.1-py2.py3-none-any.whl", hash = "sha256:52a57c9f53f03c88b189283734b397314288250cc4a3c4113e9e36e2ac6bdd16"},
     {file = "rlp-2.0.1.tar.gz", hash = "sha256:665e8312750b3fc5f7002e656d05b9dcb6e93b6063df40d95c49ad90c19d1f0e"},
+]
+siwe = [
+    {file = "siwe-2.0.0-py3-none-any.whl", hash = "sha256:a381eda1f6517a5232243eb9dd804525bf226f69858549c3773cde228024ca59"},
+    {file = "siwe-2.0.0.tar.gz", hash = "sha256:707ee6ff1bb3ada51ef38403f04c71584a51264db2e37a7ab75185770a18ddef"},
 ]
 six = [
     {file = "six-1.16.0-py2.py3-none-any.whl", hash = "sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254"},

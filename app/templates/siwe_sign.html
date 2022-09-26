@@ -1,0 +1,140 @@
+<!doctype html>
+
+<head>
+    <title>Sign message</title>
+
+    <script src="https://cdn.jsdelivr.net/gh/chrisdickinson/bops@master/dist/bops.js" type="module"></script>
+    <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+    <!-- <script type="module" src="{{ url_for('static', filename='js/script.js') }}"></script> -->
+</head>
+
+<body>
+    <h1>Sign Message</h1>
+    <button id="connectWalletBtn">Connect MetaMask Wallet</button>
+    <button id="signBtn">Sign message</button>
+    <p>Wallet: <span id="userWallet"></span></p>
+    <p>ChainId: <span id="chainId"></span></p>
+
+    <script>
+        window.userWalletAddress = null
+        const connectWalletButton = document.getElementById('connectWalletBtn')
+        const signButton = document.getElementById('signBtn')
+        const userWallet = document.getElementById('userWallet')
+        const chainId = document.getElementById('chainId')
+
+        function toggleButton() {
+            if (!window.ethereum) {
+                connectWalletButton.innerText = 'MetaMask is not installed';
+                return false;
+            }
+
+            connectWalletButton.addEventListener('click', loginWithMetaMask);
+            signButton.addEventListener('click', sign);
+        }
+
+        async function loginWithMetaMask() {
+            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
+                .catch((e) => {
+                console.error(e.message)
+                return
+                })
+            if (!accounts) { return }
+            window.userWalletAddress = accounts[0]
+
+            window.chainId = Number(await window.ethereum.request({ method: 'eth_chainId' }))
+            
+            userWallet.innerText = window.userWalletAddress
+            chainId.innerText = window.chainId
+            connectWalletButton.innerText = 'Sign out of MetaMask'
+
+            connectWalletButton.removeEventListener('click', loginWithMetaMask)
+            setTimeout(() => {
+                connectWalletButton.addEventListener('click', signOutOfMetaMask)
+            }, 200)
+        }
+
+        function signOutOfMetaMask() {
+            window.userWalletAddress = null
+            userWallet.innerText = ''
+            chainId.innerText = ''
+            connectWalletButton.innerText = 'Sign in with MetaMask'
+
+            connectWalletButton.removeEventListener('click', signOutOfMetaMask)
+            setTimeout(() => {
+                connectWalletButton.addEventListener('click', loginWithMetaMask)
+            }, 200)
+        }
+
+        async function sign() {
+            const web3 = new Web3(window.ethereum);
+
+            if (typeof web3 !== 'undefined') {
+                console.log('MetaMask is installed!');
+            } else {
+                console.log('MetaMask is not installed!');
+            }
+
+            // var globalAccount = userWallet.innerText;
+            var globalSignature;
+            await signMessage();
+            sendRequest();
+
+            function getMessage() {
+                let xhr = new XMLHttpRequest();
+                const url = '{{ message_url|safe }}' + `&account_address=${userWallet.innerText}`;
+                console.log('message_url: ' + url);
+                xhr.open('GET', url, false);
+                xhr.send(null);
+                if (xhr.readyState == XMLHttpRequest.DONE) {
+                    return xhr.responseText;
+                }
+            }
+
+            async function signMessage() {
+                try {
+                    const from = userWallet.innerText;
+                    // console.log('from : ' + from);
+                    
+                    const msg = getMessage();
+                    console.log('msg : ' + msg);
+
+                    const sign = await window.ethereum.request({
+                        method: 'personal_sign',
+                        params: [web3.utils.utf8ToHex(msg), from, 'text'],
+                    });
+                    console.log('sign : ' + sign);
+
+                    globalSignature = sign;
+                } catch (err) {
+                    console.error(err);
+                }
+            }
+
+            function sendRequest() {
+                let xhr = new XMLHttpRequest();
+                const url = '{{ sign_url|safe }}';
+                console.log('url: ' + url);
+                xhr.open('POST', url, true);
+                xhr.setRequestHeader('Content-Type', 'application/json');
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState === 4 && xhr.status === 200) {
+                        console.log(`response: ${xhr.responseText}`);
+                        // globalSignatureResult = xhr.responseText['result'];
+                    }
+                };
+                const data = JSON.stringify({'address': userWallet.innerText, 'sign': globalSignature});
+                try {
+                    xhr.send(data);
+                } catch (err) {
+                    console.error(err);
+                }
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            toggleButton();
+        });
+    </script>
+</body>
+
+</html>
